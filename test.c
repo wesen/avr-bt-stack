@@ -223,6 +223,54 @@ int unix_wait_for_connection(bt_dev_t *dev) {
             DEBUG_STR("Connection not successful");
             break;
 
+         case dev_evt_pincode_req:
+            DEBUG_STR("PIN CODE request");
+            break;
+
+         case dev_evt_link_key_req:
+            DEBUG_STR("LINK KEY request");
+            if (!memcmp(dev->ptr, peers[0].bd_addr, 6)) {
+               bt_dev_pack_link_key_reply_neg(dev, peers[0].bd_addr);
+               bt_dev_flush_hci(dev);
+            }
+            break;
+
+         case dev_evt_link_key_not:
+            DEBUG_STR("LINK KEY notification");
+            break;
+
+         case dev_evt_link_key_reply_succ:
+            DEBUG_STR("LINK KEY REPLY successful");
+            break;
+
+         case dev_evt_link_key_reply_unsucc:
+            DEBUG_STR("LINK KEY REPLY unsuccessful");
+            break;
+
+         case dev_evt_link_key_reply_neg_succ:
+            DEBUG_STR("LINK KEY REPLY NEG successful");
+            break;
+
+         case dev_evt_link_key_reply_neg_unsucc:
+            DEBUG_STR("LINK KEY REPLY NEG unsuccessful");
+            break;
+
+         case dev_evt_pincode_reply_succ:
+            DEBUG_STR("PINCODE REPLY successful");
+            break;
+
+         case dev_evt_pincode_reply_unsucc:
+            DEBUG_STR("PINCODE REPLY unsuccessful");
+            break;
+
+         case dev_evt_pincode_reply_neg_succ:
+            DEBUG_STR("PINCODE REPLY NEG successful");
+            break;
+
+         case dev_evt_pincode_reply_neg_unsucc:
+            DEBUG_STR("PINCODE REPLY NEG unsuccessful");
+            break;
+
          case dev_evt_none:
          case dev_evt_garbage:
             break;

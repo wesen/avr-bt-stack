@@ -75,7 +75,7 @@ int unix_inquiry_dev(bt_dev_t *dev) {
 
    /* start inquiry */
    DEBUG_STR("starting inquiry");
-   bt_dev_pack_inquiry(dev, 10, NUM_PEERS);
+   bt_dev_pack_inquiry(dev, 5, NUM_PEERS);
    bt_dev_flush_hci(dev);
    
    while (!finished) {
@@ -133,6 +133,10 @@ int unix_connect_acl(bt_dev_t *dev, bt_peer_t *peer) {
 
          case dev_evt_link_key_req:
             DEBUG_STR("LINK KEY request");
+            if (!memcmp(dev->ptr, peer->bd_addr, 6)) {
+               bt_dev_pack_link_key_reply_neg(dev, peer->bd_addr);
+               bt_dev_flush_hci(dev);
+            }
             break;
 
          case dev_evt_link_key_not:
