@@ -1,0 +1,58 @@
+CC = avr-gcc
+LD = avr-ld
+OBJCOPY = avr-objcopy
+OBJDUMP = avr-objdump
+STRIP = avr-strip
+UISP = sudo uisp
+PAGER = less
+
+AVR_ARCH = atmega103
+
+BTFLAGS ?= -DBTERICSSON -DSTACK_AVR
+CFLAGS = -Wall -pedantic -g -Os $(BTFLAGS) -mmcu=$(AVR_ARCH)
+CFLAGS += -DDEBUG
+LDFLAGS = -L../src/avr-env
+LIBS = -lavr
+
+COMMON_STACK_OBJS = bt_dev.o bt_stack.o bt_hci.o
+AVR_STACK_OBJS = io_avr.o serial_avr.o
+
+all: stack-avr.elf
+
+bt_stack.h: bt_dev.h bt_hci.h bt_io.h bt_serial.h
+%.o: bt_stack.h
+
+# STACK
+stack-avr.elf: $(COMMON_STACK_OBJS) \
+	   $(AVR_STACK_OBJS) stack-avr.o ../src/avr-env/libavr.a
+	$(CC) $(CFLAGS) $(BTFLAGS) \
+         -o stack-avr.elf $(COMMON_STACK_OBJS) \
+                       $(AVR_STACK_OBJS) \
+                       stack-avr.o $(LDFLAGS) $(LIBS)
+	$(STRIP) stack-avr.elf
+
+%.obj: %.elf
+	$(OBJCOPY) -O avrobj $< $@
+
+# CONVERT ELF
+%.hex: %.elf
+	$(OBJCOPY) -O ihex $< $@
+
+%.srec: %.elf
+	$(OBJCOPY) -O srec $< $@
+
+# DEBUG
+%.dump: %.elf
+	$(OBJDUMP) -S $< | $(PAGER)
+
+# PROGRAM
+%.uisp: %.srec
+	$(UISP) -dprog=stk200 --erase --upload if=$< --verify
+
+%.avrprog: %.hex
+	$(AVRPROG) -d $(AVRPROG_ARCH) -w -R -v < led.hex
+
+clean:
+	- rm -f *.o *~ *core *.elf *.hex *.map *.srec *.lst *.avrobj \
+                stack-unix test stack-ericsson stack-xircom stack-avr \
+                bt-mouse-bt
