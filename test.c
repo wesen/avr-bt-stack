@@ -204,9 +204,9 @@ int unix_wait_for_connection(bt_dev_t *dev) {
                link_type = UINT8_UNPACK(dev->ptr);
 
                if (link_type == 1) {
-                  bt_dev_pack_accept_conn(dev, peers, 1);
+                  bt_dev_pack_accept_conn(dev, peers[0].bd_addr, 1);
                } else {
-                  bt_dev_pack_reject_conn(dev, peers,
+                  bt_dev_pack_reject_conn(dev, peers[0].bd_addr,
                                           HCI_REJECT_PERSONAL);
                }
 

@@ -55,20 +55,6 @@ void bt_dev_pack_create_conn(bt_dev_t *dev, bt_peer_t *peer,
    UINT8_PACK(dev->ptr,  roleswitch);
 }
 
-void bt_dev_pack_accept_conn(bt_dev_t *dev, bt_peer_t *peer, 
-                             unsigned char role) {
-   bt_hci_pack_cmd(dev, OGF_LINK_CTL, OCF_ACCEPT_CONN_REQ, 7);
-   memcpy(dev->ptr, peer->bd_addr, 6); dev->ptr += 6;
-   UINT8_PACK(dev->ptr, role);
-}
-
-void bt_dev_pack_reject_conn(bt_dev_t *dev, bt_peer_t *peer, 
-                             unsigned char reason) {
-   bt_hci_pack_cmd(dev, OGF_LINK_CTL, OCF_REJECT_CONN_REQ, 7);
-   memcpy(dev->ptr, peer->bd_addr, 6); dev->ptr += 6;
-   UINT8_PACK(dev->ptr, reason);
-}
-
 void bt_dev_pack_change_local_name(bt_dev_t *dev, const char *s) {
    unsigned char len = strlen(s);
 
