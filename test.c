@@ -6,6 +6,9 @@
 
 bt_dev_t     dev;
 bt_peer_t    peers[NUM_PEERS];
+unsigned char pincode[16] = {
+   0xde, 0xad, 0xc0, 0xde, 0xf0, 0xa8, 0xbe, 0xef,
+   0xde, 0xad, 0xc0, 0xde, 0xf0, 0xa8, 0xba, 0xbe };
 unsigned int num_peers = 0;
 
 int unix_init_dev(bt_dev_t *dev) {
@@ -225,6 +228,11 @@ int unix_wait_for_connection(bt_dev_t *dev) {
 
          case dev_evt_pincode_req:
             DEBUG_STR("PIN CODE request");
+            if (!memcmp(dev->ptr, peers[0].bd_addr, 6)) {
+               bt_dev_pack_pincode_reply(dev, peers[0].bd_addr, 
+                                              16, pincode);
+               bt_dev_flush_hci(dev);
+            }
             break;
 
          case dev_evt_link_key_req:
