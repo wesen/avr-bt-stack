@@ -11,10 +11,10 @@ void bt_l2cap_pack_cmd(bt_dev_t *dev,
                        unsigned char code, 
                        unsigned char id, 
                        unsigned short len) {
-   bt_l2cap_pack_hdr(dev, length + 4, 1);
-   UINT8_PACK(dev, code);
-   UINT8_PACK(dev, id);
-   UINT16_PACK(dev, len);
+   bt_l2cap_pack_hdr(dev, len + 4, 1);
+   UINT8_PACK(dev->ptr, code);
+   UINT8_PACK(dev->ptr, id);
+   UINT16_PACK(dev->ptr, len);
 }
 
 void bt_l2cap_pack_cmd_not_understood(bt_dev_t *dev) {
@@ -93,8 +93,54 @@ bt_l2cap_evt_e bt_l2cap_unpack_cmd(bt_dev_t *dev) {
          }
 
       case L2CAP_CONF_REQ:
-         
+         if (len < 4) {
+            return l2cap_evt_garbage;
+         } else {
+            return l2cap_evt_conf_req;
+         }
 
+      case L2CAP_CONF_RSP:
+         if (len < 8) {
+            return l2cap_evt_garbage;
+         } else {
+            return l2cap_evt_conf_rsp;
+         }
+
+      case L2CAP_DISCONN_REQ:
+         if (len < 4) {
+            return l2cap_evt_garbage;
+         } else {
+            return l2cap_evt_disconn_req;
+         }
+
+      case L2CAP_DISCONN_RSP:
+         if (len < 4) {
+            return l2cap_evt_garbage;
+         } else {
+            return l2cap_evt_disconn_rsp;
+         }
+
+      case L2CAP_ECHO_REQ:
+         return l2cap_evt_echo_req;
+
+      case L2CAP_ECHO_RSP:
+         return l2cap_evt_echo_rsp;
+         
+      case L2CAP_INFO_REQ:
+         if (len < 2) {
+            return l2cap_evt_garbage;
+         } else {
+            return l2cap_evt_info_req;
+         }
+         
+      case L2CAP_INFO_RSP:
+         if (len < 4) {
+            return l2cap_evt_garbage;
+         } else {
+            return l2cap_evt_info_rsp;
+         }
+         
       default:
          return l2cap_evt_garbage;
    }
+}

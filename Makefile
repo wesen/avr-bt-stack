@@ -7,7 +7,7 @@ LDFLAGS =
 
 all: bt-mouse
 
-COMMON_STACK_OBJS = bt_dev.o bt_stack.o bt_hci.o
+COMMON_STACK_OBJS = bt_dev.o bt_stack.o bt_hci.o bt_l2cap.o
 STDIO_STACK_OBJS = io_stdio.o
 UNIX_STACK_OBJS = serial_unix.o
 

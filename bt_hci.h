@@ -12,6 +12,8 @@ typedef struct bt_acl_s {
    unsigned short handle;
    unsigned short pkt_types;
    unsigned char  max_slots;
+   unsigned char  encrypt_mode;
+   bt_peer_t      *peer;
 } bt_acl_t;
 
 /** size of a command packet header */

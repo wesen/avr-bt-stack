@@ -46,6 +46,9 @@ typedef struct bt_l2cap_ch_s {
    l2cap_ch_state_e state;
 } bt_l2cap_ch_t;
 
+bt_l2cap_evt_e bt_l2cap_unpack(bt_dev_t *dev);
+bt_l2cap_evt_e bt_l2cap_unpack_cmd(bt_dev_t *dev);
+
 #define L2CAP_CMD_REJ     0x01
 #define L2CAP_CONN_REQ    0x02
 #define L2CAP_CONN_RSP    0x03

@@ -6,10 +6,14 @@
 
 bt_dev_t     dev;
 bt_peer_t    peers[NUM_PEERS];
+bt_acl_t     acl;
+
 unsigned char pincode[16] = {
    0xde, 0xad, 0xc0, 0xde, 0xf0, 0xa8, 0xbe, 0xef,
    0xde, 0xad, 0xc0, 0xde, 0xf0, 0xa8, 0xba, 0xbe };
 unsigned int num_peers = 0;
+
+int unix_handle_connection(bt_dev_t *dev, bt_peer_t *peer);
 
 int unix_init_dev(bt_dev_t *dev) {
    /* initialize bluetooth device */
@@ -114,83 +118,10 @@ int unix_inquiry_dev(bt_dev_t *dev) {
 }
 
 int unix_connect_acl(bt_dev_t *dev, bt_peer_t *peer) {
-   unsigned int finished = 0;
-
    bt_dev_pack_create_conn(dev, peer, 0);
    bt_dev_flush_hci(dev);
 
-   while (!finished) {
-      switch (bt_dev_read_hci(dev)) {
-         case dev_evt_pincode_req:
-            DEBUG_STR("PIN CODE request");
-            break;
-
-         case dev_evt_link_key_req:
-            DEBUG_STR("LINK KEY request");
-            break;
-
-         case dev_evt_link_key_not:
-            DEBUG_STR("LINK KEY notification");
-            break;
-
-         case dev_evt_link_key_reply_succ:
-            DEBUG_STR("LINK KEY REPLY successful");
-            break;
-
-         case dev_evt_link_key_reply_unsucc:
-            DEBUG_STR("LINK KEY REPLY unsuccessful");
-            break;
-
-         case dev_evt_link_key_reply_neg_succ:
-            DEBUG_STR("LINK KEY REPLY NEG successful");
-            break;
-
-         case dev_evt_link_key_reply_neg_unsucc:
-            DEBUG_STR("LINK KEY REPLY NEG unsuccessful");
-            break;
-
-         case dev_evt_pincode_reply_succ:
-            DEBUG_STR("PINCODE REPLY successful");
-            break;
-
-         case dev_evt_pincode_reply_unsucc:
-            DEBUG_STR("PINCODE REPLY unsuccessful");
-            break;
-
-         case dev_evt_pincode_reply_neg_succ:
-            DEBUG_STR("PINCODE REPLY NEG successful");
-            break;
-
-         case dev_evt_pincode_reply_neg_unsucc:
-            DEBUG_STR("PINCODE REPLY NEG unsuccessful");
-            break;
-
-         case dev_evt_conn_complete_succ:
-            DEBUG_STR("Connection complete");
-            return 1;
-            break;
-
-         case dev_evt_conn_complete_unsucc:
-            DEBUG_STR("Connection incomplete");
-            return 0;
-            break;
-
-         case dev_evt_disconn_complete_succ:
-            DEBUG_STR("Disconnection complete");
-            break;
-
-         case dev_evt_disconn_complete_unsucc:
-            DEBUG_STR("Disconnection incomplete");
-            break;
-
-         default:
-            finished = 1;
-            DEBUG_STR("not handled");
-            break;
-      }
-   }
-
-   return 0;
+   return unix_handle_connection(dev, peer);
 }
 
 int unix_wait_for_connection(bt_dev_t *dev) {
@@ -201,30 +132,51 @@ int unix_wait_for_connection(bt_dev_t *dev) {
          case dev_evt_conn_request:
             {
                unsigned char link_type;
-
+               
                memcpy(peers[0].bd_addr, dev->ptr, 6); dev->ptr += 6;
                memcpy(peers[0].cod, dev->ptr, 3); dev->ptr += 3;
                link_type = UINT8_UNPACK(dev->ptr);
 
                if (link_type == 1) {
                   bt_dev_pack_accept_conn(dev, peers[0].bd_addr, 1);
+                  bt_dev_flush_hci(dev);
+
+                  if (unix_handle_connection(dev, peers))
+                     finished = 1;
                } else {
                   bt_dev_pack_reject_conn(dev, peers[0].bd_addr,
                                           HCI_REJECT_PERSONAL);
+                  bt_dev_flush_hci(dev);
                }
-
-               bt_dev_flush_hci(dev);
 
                break;
             }
 
+         case dev_evt_timeout:
+         case dev_evt_garbage:
+            break;
+
+         default:
+            DEBUG_STR("Not handled");
+            break;
+      }
+   }
+
+   return 1;
+}
+
+int unix_handle_connection(bt_dev_t *dev, bt_peer_t *peer) {
+   unsigned int finished = 0;
+
+   while (!finished) {
+      switch (bt_dev_read_hci(dev)) {
          case dev_evt_conn_complete_succ:
             DEBUG_STR("Connection successful");
-            break;
+            return 1;
 
          case dev_evt_conn_complete_unsucc:
             DEBUG_STR("Connection not successful");
-            break;
+            return 0;
 
          case dev_evt_pincode_req:
             DEBUG_STR("PIN CODE request");
@@ -253,7 +205,7 @@ int unix_wait_for_connection(bt_dev_t *dev) {
 
          case dev_evt_link_key_reply_unsucc:
             DEBUG_STR("LINK KEY REPLY unsuccessful");
-            break;
+            return 0;
 
          case dev_evt_link_key_reply_neg_succ:
             DEBUG_STR("LINK KEY REPLY NEG successful");
@@ -261,7 +213,7 @@ int unix_wait_for_connection(bt_dev_t *dev) {
 
          case dev_evt_link_key_reply_neg_unsucc:
             DEBUG_STR("LINK KEY REPLY NEG unsuccessful");
-            break;
+            return 0;
 
          case dev_evt_pincode_reply_succ:
             DEBUG_STR("PINCODE REPLY successful");
@@ -269,7 +221,7 @@ int unix_wait_for_connection(bt_dev_t *dev) {
 
          case dev_evt_pincode_reply_unsucc:
             DEBUG_STR("PINCODE REPLY unsuccessful");
-            break;
+            return 0;
 
          case dev_evt_pincode_reply_neg_succ:
             DEBUG_STR("PINCODE REPLY NEG successful");
@@ -277,15 +229,124 @@ int unix_wait_for_connection(bt_dev_t *dev) {
 
          case dev_evt_pincode_reply_neg_unsucc:
             DEBUG_STR("PINCODE REPLY NEG unsuccessful");
-            break;
+            return 0;
 
          case dev_evt_none:
          case dev_evt_garbage:
             break;
 
          default:
-            finished = 1;
             DEBUG_STR("not handled");
+            break;
+      }
+   }
+
+   return 1;
+}
+
+int unix_handle_acl(bt_dev_t *dev, bt_acl_t *acl) {
+   unsigned short hf, handle, pb, bc, len;
+
+   hf = UINT16_UNPACK(dev->ptr);
+   len = UINT16_UNPACK(dev->ptr);
+   handle = ACL_HANDLE(hf);
+   pb = ACL_FLAGS_PB(hf);
+   bc = ACL_FLAGS_BC(hf);
+
+   if (hf == acl->handle) {
+      switch (pb) {
+         case HCI_ACL_CONT:
+            DEBUG_STR("L2CAP Continuation");
+            break;
+
+         case HCI_ACL_START:
+            DEBUG_STR("L2CAP start packet");
+            switch (bt_l2cap_unpack(dev)) {
+               case l2cap_evt_garbage:
+                  DEBUG_STR("L2CAP garbage");
+                  break;
+
+               case l2cap_evt_connless_data:
+                  DEBUG_STR("Connection less data");
+                  break;
+
+               case l2cap_evt_conn_data:
+                  DEBUG_STR("Connection data");
+                  break;
+                  
+               case l2cap_evt_echo_req:
+                  DEBUG_STR("L2CAP echo request");
+                  break;
+
+               case l2cap_evt_echo_rsp:
+                  DEBUG_STR("L2CAP echo response");
+                  break;
+
+               case l2cap_evt_conf_req:
+                  DEBUG_STR("L2CAP configuration request");
+                  break;
+
+               case l2cap_evt_conf_rsp:
+                  DEBUG_STR("L2CAP configuration response");
+                  break;
+
+               case l2cap_evt_conn_req:
+                  DEBUG_STR("L2CAP connection request");
+                  break;
+
+               case l2cap_evt_conn_rsp:
+                  DEBUG_STR("L2CAP connection response");
+                  break;
+
+               default:
+                  DEBUG_STR("Not handled");
+                  break;
+            }
+            break;
+
+         default:
+            DEBUG_STR("LMP not handled");
+            break;
+      }
+   }
+
+   return 1;
+}
+
+int unix_main_loop(bt_dev_t *dev, bt_acl_t *acl) {
+   unsigned int finished = 0;
+
+   while (!finished) {
+      switch (bt_dev_read_hci(dev)) {
+         case dev_evt_acl:
+            unix_handle_acl(dev, acl);
+            break;
+
+         case dev_evt_disconn_complete_succ:
+            break;
+
+         case dev_evt_disconn_complete_unsucc:
+            break;
+
+         case dev_evt_conn_request:
+            {
+               unsigned char bd_addr[6];
+               
+               memcpy(bd_addr, dev->ptr, 6); dev->ptr += 6;
+
+               bt_dev_pack_reject_conn(dev, bd_addr,
+                                       HCI_REJECT_PERSONAL);
+               bt_dev_flush_hci(dev);
+
+               break;
+            }
+
+         case dev_evt_timeout:
+         case dev_evt_garbage:
+            break;
+
+         default:
+            DEBUG_STR("Not handled");
             break;
       }
    }
@@ -304,7 +365,15 @@ int main(int argc, char *argv[]) {
       return EXIT_FAILURE;
    }
 
-   unix_wait_for_connection(&dev);
+   while (!unix_wait_for_connection(&dev))
+      ;
+
+   acl.peer = peers;
+   acl.handle = UINT8_UNPACK(dev.ptr);
+   memcpy(acl.peer->bd_addr, dev.ptr, 6); dev.ptr += 6;
+   acl.encrypt_mode = UINT8_UNPACK(dev.ptr);
+
+   unix_main_loop(&dev, &acl);
 
    return EXIT_SUCCESS;
 }
