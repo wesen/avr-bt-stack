@@ -36,6 +36,16 @@ typedef enum {
    dev_evt_link_key_not,
    dev_evt_link_key_req,
 
+   dev_evt_link_key_reply_succ,
+   dev_evt_link_key_reply_unsucc,
+   dev_evt_link_key_reply_neg_succ,
+   dev_evt_link_key_reply_neg_unsucc,
+
+   dev_evt_pincode_reply_succ,
+   dev_evt_pincode_reply_unsucc,
+   dev_evt_pincode_reply_neg_succ,
+   dev_evt_pincode_reply_neg_unsucc,
+
    dev_evt_read_features_succ,
    dev_evt_read_features_unsucc,
 
@@ -94,6 +104,19 @@ void bt_dev_pack_write_auth_enable(bt_dev_t *dev);
 void bt_dev_pack_inquiry(bt_dev_t      *dev, 
                          unsigned char len, 
                          unsigned char num_peers);
+void bt_dev_pack_create_conn(bt_dev_t *dev, bt_peer_t *peer,
+                             unsigned char  roleswitch);
+void bt_dev_pack_link_key_reply(bt_dev_t *dev, 
+                                unsigned char *bd_addr,
+                                unsigned char *link_key);
+void bt_dev_pack_link_key_reply_neg(bt_dev_t *dev, 
+                                    unsigned char *bd_addr);
+void bt_dev_pack_pincode_reply(bt_dev_t *dev, 
+                                unsigned char *bd_addr,
+                                unsigned char len,
+                                unsigned char *pincode);
+void bt_dev_pack_pincode_reply_neg(bt_dev_t *dev, 
+                                    unsigned char *bd_addr);
 void bt_dev_pack_l2cap(bt_dev_t *dev, unsigned short handle, 
                        unsigned char *data, int len);
 

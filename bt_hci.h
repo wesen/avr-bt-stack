@@ -103,7 +103,9 @@ bt_dev_evt_e bt_hci_unpack_cc_read_bd_addr(bt_dev_t *dev);
 #define OCF_ACCEPT_CONN_REQ     0x0009
 #define OCF_REJECT_CONN_REQ     0x000a
 #define OCF_LINK_KEY_REPLY      0x000b
-#define OCF_LINK_KEY_REPLY      0x000b
+#define OCF_LINK_KEY_REPLY_NEG  0x000c
+#define OCF_PINCODE_REPLY       0x000d
+#define OCF_PINCODE_REPLY_NEG   0x000e
 
 /* OCF_INQUIRY */
 #define OCF_INQUIRY             0x0001

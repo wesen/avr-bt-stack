@@ -278,12 +278,66 @@ bt_dev_evt_e bt_hci_unpack_cmd_complete(bt_dev_t *dev, int len) {
                   if (len < 7) {
                      return dev_evt_garbage;
                   } else {
+                     status = UINT8_UNPACK(dev->ptr);
+                     if (status == HCI_SUCCESS) {
+                        return dev_evt_link_key_reply_succ;
+                     } else {
+                        return dev_evt_link_key_reply_unsucc;
+                     }
                   }
                   break;
                }
 
             case OCF_LINK_KEY_REPLY_NEG:
-               break;
+               {
+                  unsigned char status;
+
+                  if (len < 7) {
+                     return dev_evt_garbage;
+                  } else {
+                     status = UINT8_UNPACK(dev->ptr);
+                     if (status == HCI_SUCCESS) {
+                        return dev_evt_link_key_reply_neg_succ;
+                     } else {
+                        return dev_evt_link_key_reply_neg_unsucc;
+                     }
+                  }
+                  break;
+               }
+
+            case OCF_PINCODE_REPLY:
+               {
+                  unsigned char status;
+
+                  if (len < 7) {
+                     return dev_evt_garbage;
+                  } else {
+                     status = UINT8_UNPACK(dev->ptr);
+                     if (status == HCI_SUCCESS) {
+                        return dev_evt_pincode_reply_succ;
+                     } else {
+                        return dev_evt_pincode_reply_unsucc;
+                     }
+                  }
+                  break;
+               }
+
+            case OCF_PINCODE_REPLY_NEG:
+               {
+                  unsigned char status;
+
+                  if (len < 7) {
+                     return dev_evt_garbage;
+                  } else {
+                     status = UINT8_UNPACK(dev->ptr);
+                     if (status == HCI_SUCCESS) {
+                        return dev_evt_pincode_reply_neg_succ;
+                     } else {
+                        return dev_evt_pincode_reply_neg_unsucc;
+                     }
+                  }
+                  break;
+               }
          }
          break;
 
@@ -376,6 +430,8 @@ bt_dev_evt_e bt_hci_unpack_cmd_complete(bt_dev_t *dev, int len) {
          DEBUG_INT(ogf);
          return dev_evt_none;
    }
+
+   return dev_evt_none;
 }
 
 bt_dev_evt_e bt_hci_unpack_cc_read_local_features(bt_dev_t *dev) {

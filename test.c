@@ -200,12 +200,8 @@ int main(int argc, char *argv[]) {
       return EXIT_FAILURE;
    }
 
-   while (unix_inquiry_dev(&dev) == 0)
+   while (bt_dev_hci_read(&dev)) 
       ;
-
-   if (!unix_connect_acl(&dev, peers)) {
-      PERR_STR("Could not connect to device");
-   }
 
    return EXIT_SUCCESS;
 }

@@ -111,7 +111,23 @@ void bt_dev_pack_link_key_reply(bt_dev_t *dev,
 
 void bt_dev_pack_link_key_reply_neg(bt_dev_t *dev, 
                                     unsigned char *bd_addr) {
-   bt_hci_pack_cmd(dev, OGF_LINK_CTL, OCF_LINK_KEY_REPLY, 6);
+   bt_hci_pack_cmd(dev, OGF_LINK_CTL, OCF_LINK_KEY_REPLY_NEG, 6);
+   memcpy(dev->ptr, bd_addr, 6); dev->ptr += 6;
+}
+
+void bt_dev_pack_pincode_reply(bt_dev_t *dev, 
+                                unsigned char *bd_addr,
+                                unsigned char len,
+                                unsigned char *pincode) {
+   bt_hci_pack_cmd(dev, OGF_LINK_CTL, OCF_PINCODE_REPLY, 23);
+   memcpy(dev->ptr, bd_addr, 6); dev->ptr += 6;
+   UINT8_PACK(dev->ptr, len);
+   memcpy(dev->ptr, pincode, 16); dev->ptr += 16;
+}
+
+void bt_dev_pack_pincode_reply_neg(bt_dev_t *dev, 
+                                    unsigned char *bd_addr) {
+   bt_hci_pack_cmd(dev, OGF_LINK_CTL, OCF_PINCODE_REPLY_NEG, 6);
    memcpy(dev->ptr, bd_addr, 6); dev->ptr += 6;
 }
 
