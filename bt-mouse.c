@@ -130,6 +130,38 @@ int unix_connect_acl(bt_dev_t *dev, bt_peer_t *peer) {
             DEBUG_STR("LINK KEY notification");
             break;
 
+         case dev_evt_link_key_reply_succ:
+            DEBUG_STR("LINK KEY REPLY successful");
+            break;
+
+         case dev_evt_link_key_reply_unsucc:
+            DEBUG_STR("LINK KEY REPLY unsuccessful");
+            break;
+
+         case dev_evt_link_key_reply_neg_succ:
+            DEBUG_STR("LINK KEY REPLY NEG successful");
+            break;
+
+         case dev_evt_link_key_reply_neg_unsucc:
+            DEBUG_STR("LINK KEY REPLY NEG unsuccessful");
+            break;
+
+         case dev_evt_pincode_reply_succ:
+            DEBUG_STR("PINCODE REPLY successful");
+            break;
+
+         case dev_evt_pincode_reply_unsucc:
+            DEBUG_STR("PINCODE REPLY unsuccessful");
+            break;
+
+         case dev_evt_pincode_reply_neg_succ:
+            DEBUG_STR("PINCODE REPLY NEG successful");
+            break;
+
+         case dev_evt_pincode_reply_neg_unsucc:
+            DEBUG_STR("PINCODE REPLY NEG unsuccessful");
+            break;
+
          case dev_evt_conn_complete_succ:
             DEBUG_STR("Connection complete");
             return 1;
