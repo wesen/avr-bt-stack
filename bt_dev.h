@@ -117,6 +117,9 @@ void bt_dev_pack_pincode_reply(bt_dev_t *dev,
                                 unsigned char *pincode);
 void bt_dev_pack_pincode_reply_neg(bt_dev_t *dev, 
                                     unsigned char *bd_addr);
+void bt_dev_pack_read_local_features(bt_dev_t *dev);
+void bt_dev_pack_read_buffer_size(bt_dev_t *dev);
+void bt_dev_pack_read_bd_addr(bt_dev_t *dev);
 void bt_dev_pack_l2cap(bt_dev_t *dev, unsigned short handle, 
                        unsigned char *data, int len);
 

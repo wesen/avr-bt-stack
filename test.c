@@ -183,10 +183,58 @@ int unix_connect_acl(bt_dev_t *dev, bt_peer_t *peer) {
          default:
             finished = 1;
             DEBUG_STR("not handled");
+            break;
       }
    }
 
    return 0;
+}
+
+int unix_wait_for_connection(bt_dev_t *dev) {
+   unsigned int finished = 0;
+
+   while (!finished) {
+      switch (bt_dev_read_hci(dev)) {
+         case dev_evt_conn_request:
+            {
+               unsigned char link_type;
+
+               memcpy(peers[0].bd_addr, dev->ptr, 6); dev->ptr += 6;
+               memcpy(peers[0].cod, dev->ptr, 3); dev->ptr += 3;
+               link_type = UINT8_UNPACK(dev->ptr);
+
+               if (link_type == 1) {
+                  bt_dev_pack_accept_conn(dev, peers, 1);
+               } else {
+                  bt_dev_pack_reject_conn(dev, peers,
+                                          HCI_REJECT_PERSONAL);
+               }
+
+               bt_dev_flush_hci(dev);
+
+               break;
+            }
+
+         case dev_evt_conn_complete_succ:
+            DEBUG_STR("Connection successful");
+            break;
+
+         case dev_evt_conn_complete_unsucc:
+            DEBUG_STR("Connection not successful");
+            break;
+
+         case dev_evt_none:
+         case dev_evt_garbage:
+            break;
+
+         default:
+            finished = 1;
+            DEBUG_STR("not handled");
+            break;
+      }
+   }
+
+   return 1;
 }
 
 int main(int argc, char *argv[]) {

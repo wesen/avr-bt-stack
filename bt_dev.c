@@ -55,6 +55,20 @@ void bt_dev_pack_create_conn(bt_dev_t *dev, bt_peer_t *peer,
    UINT8_PACK(dev->ptr,  roleswitch);
 }
 
+void bt_dev_pack_accept_conn(bt_dev_t *dev, bt_peer_t *peer, 
+                             unsigned char role) {
+   bt_hci_pack_cmd(dev, OGF_LINK_CTL, OCF_ACCEPT_CONN_REQ, 7);
+   memcpy(dev->ptr, peer->bd_addr, 6); dev->ptr += 6;
+   UINT8_PACK(dev->ptr, role);
+}
+
+void bt_dev_pack_reject_conn(bt_dev_t *dev, bt_peer_t *peer, 
+                             unsigned char reason) {
+   bt_hci_pack_cmd(dev, OGF_LINK_CTL, OCF_REJECT_CONN_REQ, 7);
+   memcpy(dev->ptr, peer->bd_addr, 6); dev->ptr += 6;
+   UINT8_PACK(dev->ptr, reason);
+}
+
 void bt_dev_pack_change_local_name(bt_dev_t *dev, const char *s) {
    unsigned char len = strlen(s);
 
@@ -129,6 +143,18 @@ void bt_dev_pack_pincode_reply_neg(bt_dev_t *dev,
                                     unsigned char *bd_addr) {
    bt_hci_pack_cmd(dev, OGF_LINK_CTL, OCF_PINCODE_REPLY_NEG, 6);
    memcpy(dev->ptr, bd_addr, 6); dev->ptr += 6;
+}
+
+void bt_dev_pack_read_local_features(bt_dev_t *dev) {
+   bt_hci_pack_cmd(dev, OGF_INFO_PARAM, OCF_READ_LOCAL_FEATURES, 0);
+}
+
+void bt_dev_pack_read_buffer_size(bt_dev_t *dev) {
+   bt_hci_pack_cmd(dev, OGF_INFO_PARAM, OCF_READ_BUFFER_SIZE, 0);
+}
+
+void bt_dev_pack_read_bd_addr(bt_dev_t *dev) {
+   bt_hci_pack_cmd(dev, OGF_INFO_PARAM, OCF_READ_BD_ADDR, 0);
 }
 
 void bt_dev_pack_l2cap(bt_dev_t *dev, unsigned short handle, 

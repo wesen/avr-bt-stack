@@ -248,6 +248,9 @@ bt_dev_evt_e bt_hci_unpack_cmd_status(bt_dev_t *dev, int len) {
    } else {
       ogf = CMD_OPCODE_OGF(opcode);
       ocf = CMD_OPCODE_OCF(opcode);
+      DEBUG_STR("CMD STATUS OGF, OCF");
+      DEBUG_INT(ogf);
+      DEBUG_INT(ocf);
    }
 
    return dev_evt_none;

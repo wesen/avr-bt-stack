@@ -27,11 +27,20 @@ int unix_init_dev(bt_dev_t *dev) {
 
    /* set the local name */
    DEBUG_STR("setting local name to "DEV_NAME);
-
    bt_dev_pack_change_local_name(dev, DEV_NAME);
    bt_dev_flush_hci(dev);
    
    if (bt_dev_read_hci(dev) != dev_evt_change_name_succ) {
+      DEBUG_STR("Error");
+      return 0;
+   }
+
+   /* read local features */
+   DEBUG_STR("reading local features");
+   bt_dev_pack_read_local_features(dev);
+   bt_dev_flush_hci(dev);
+   
+   if (bt_dev_read_hci(dev) != dev_evt_read_local_feat_succ) {
       DEBUG_STR("Error");
       return 0;
    }
@@ -66,7 +75,7 @@ int unix_inquiry_dev(bt_dev_t *dev) {
 
    /* start inquiry */
    DEBUG_STR("starting inquiry");
-   bt_dev_pack_inquiry(dev, 20, NUM_PEERS);
+   bt_dev_pack_inquiry(dev, 10, NUM_PEERS);
    bt_dev_flush_hci(dev);
    
    while (!finished) {
@@ -178,6 +187,10 @@ int unix_connect_acl(bt_dev_t *dev, bt_peer_t *peer) {
 
          case dev_evt_disconn_complete_unsucc:
             DEBUG_STR("Disconnection incomplete");
+            break;
+
+         case dev_evt_none:
+         case dev_evt_garbage:
             break;
 
          default:
