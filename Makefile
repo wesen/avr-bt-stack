@@ -16,13 +16,13 @@ bt_stack.h: bt_dev.h bt_hci.h bt_io.h bt_serial.h
 %.o: bt_stack.h
 
 # STACK
-stack-unix: $(COMMON_STACK_OBJS) $(STDIO_STACK_OBJS) \
-            $(UNIX_STACK_OBJS) stack-unix.o
+test: $(COMMON_STACK_OBJS) $(STDIO_STACK_OBJS) \
+            $(UNIX_STACK_OBJS) test.o
 	$(CC) $(CFLAGS) $(BTFLAGS) $(LDFLAGS) \
-         -o stack-unix $(COMMON_STACK_OBJS) \
+         -o test $(COMMON_STACK_OBJS) \
                        $(UNIX_STACK_OBJS) \
                        $(STDIO_STACK_OBJS) \
-                       stack-unix.o $(LIBS)
+                       test.o $(LIBS)
 
 bt-mouse: $(COMMON_STACK_OBJS) $(STDIO_STACK_OBJS) \
             $(UNIX_STACK_OBJS) bt-mouse.o

@@ -200,7 +200,7 @@ int main(int argc, char *argv[]) {
       return EXIT_FAILURE;
    }
 
-   while (bt_dev_hci_read(&dev)) 
+   while (bt_dev_read_hci(&dev)) 
       ;
 
    return EXIT_SUCCESS;
