@@ -248,8 +248,7 @@ int main(int argc, char *argv[]) {
       return EXIT_FAILURE;
    }
 
-   while (bt_dev_read_hci(&dev)) 
-      ;
+   unix_wait_for_connection(&dev);
 
    return EXIT_SUCCESS;
 }
