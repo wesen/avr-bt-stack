@@ -1,6 +1,9 @@
 #ifndef BT_STACK_H__
 #define BT_STACK_H__
 
+#define NUM_PEERS 3
+#define NUM_ACLS 3
+
 #include "bt_dev.h"
 #include "bt_hci.h"
 #include "bt_io.h"

@@ -26,6 +26,10 @@ typedef enum {
    l2cap_evt_conn_data,
    l2cap_evt_connless_data,
 
+   l2cap_evt_conf_mtu,
+   l2cap_evt_conf_flush,
+   l2cap_evt_conf_qos,
+
    l2cap_evt_garbage
 } bt_l2cap_evt_e;
 
@@ -46,6 +50,13 @@ typedef struct bt_l2cap_ch_s {
    l2cap_ch_state_e state;
 } bt_l2cap_ch_t;
 
+void bt_l2cap_pack_hdr(bt_dev_t *dev, 
+                       unsigned short len, 
+                       unsigned short cid);
+void bt_l2cap_pack_cmd(bt_dev_t *dev, 
+                       unsigned char code, 
+                       unsigned char id, 
+                       unsigned short len);
 bt_l2cap_evt_e bt_l2cap_unpack(bt_dev_t *dev);
 bt_l2cap_evt_e bt_l2cap_unpack_cmd(bt_dev_t *dev);
 
@@ -60,5 +71,9 @@ bt_l2cap_evt_e bt_l2cap_unpack_cmd(bt_dev_t *dev);
 #define L2CAP_ECHO_RSP    0x09
 #define L2CAP_INFO_REQ    0x0a
 #define L2CAP_INFO_RSP    0x0b
+
+#define L2CAP_CONF_MTU    0x01
+#define L2CAP_CONF_FLUSH  0x02
+#define L2CAP_CONF_QOS    0x03
 
 #endif /* BT_L2CAP_H__ */

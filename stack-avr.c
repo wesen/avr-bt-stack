@@ -31,6 +31,23 @@ bt_dev_evt_e avr_read_hci(bt_dev_t *dev) {
    return ret;
 }
 
+void avr_send_sensor_data(bt_dev_t *dev) {
+   register u08_t sensor;
+   register u08_t mask = 1l
+
+   bt_l2cap_pack_hdr(dev, 12, 2);
+   UINT8_PACK(dev->ptr, BW_DATA_SENSOR);
+   lock;
+   UINT16_PACK(dev->ptr, sensor_data[0]);
+   UINT16_PACK(dev->ptr, sensor_data[1]);
+   UINT16_PACK(dev->ptr, sensor_data[2]);
+   UINT16_PACK(dev->ptr, sensor_data[3]);
+   UINT16_PACK(dev->ptr, sensor_data[4]);
+   UINT8_PACK(dev->ptr,  button);
+   unlock;
+   bt_dev_flush_hci(dev);
+}
+
 int avr_read_eeprom(void) {
    unsigned int  addr = 0, finished = 0;
    unsigned char type;
@@ -69,6 +86,20 @@ int avr_init_dev(bt_dev_t *dev) {
       PERR_STR("Error serial");
       return 0;
    }
+
+   /* set speed to 115200 bauds */
+   DEBUG_STR("Switching speed to 115200");
+   bt_dev_pack_ericsson_set_baudrate(dev, BTERICSSON_B115200);
+   bt_dev_flush_hci(dev);
+
+   if (avr_read_hci(dev) != dev_evt_ericsson_set_baudrate_succ) {
+      DEBUG_STR("Error");
+      return 0;
+   } else {
+      outp((u08)B115200, UBRR);
+   }
+
+   Small_Delay();
 
    /* clear all event filters */
    DEBUG_STR("Resetting event filters");
@@ -268,13 +299,6 @@ int avr_main_handle_uart(bt_dev_t *dev) {
          break;
          
       case dev_evt_timeout:
-#if 0
-         if (handle != -1) {
-            unsigned char buf[] = "hello world!\n";
-            bt_dev_pack_l2cap(&dev, handle, buf, strlen((char *)buf));
-            bt_dev_flush_hci(&dev);
-         }
-#endif
          break;
          
       default:
@@ -293,12 +317,7 @@ void avr_main_loop(bt_dev_t *dev) {
             finished = 1;
       } else if (sensor_ch != NULL) {
          /* send sensor values */
-         bt_hci_pack_acl(dev,           sensor_ch->handle, 
-                         HCI_ACL_START, HCI_ACL_PP, 12+4);
-         bt_l2cap_pack_hdr(dev, 12, sensor_ch->dst_cid);
-
-         store_values(dev->ptr); dev->ptr += 12;
-         bt_dev_flush_hci(dev);
+         avr_send_sensor_data(dev);
       }
    }
 }

@@ -8,14 +8,6 @@ typedef enum {
    hci_evt_pkt
 } hci_type_e;
 
-typedef struct bt_acl_s {
-   unsigned short handle;
-   unsigned short pkt_types;
-   unsigned char  max_slots;
-   unsigned char  encrypt_mode;
-   bt_peer_t      *peer;
-} bt_acl_t;
-
 /** size of a command packet header */
 #define HCI_CMD_SIZE 3
 /** size of a data packet header */
@@ -36,13 +28,29 @@ void bt_hci_pack_sco(bt_dev_t *dev, unsigned short handle,
                                     unsigned char  len);
 
 
-bt_dev_evt_e bt_hci_unpack_hci(bt_dev_t *dev);
+bt_dev_evt_e bt_hci_unpack_hci(bt_dev_t *dev, bt_callbacks_t *cb);
 
-bt_dev_evt_e bt_hci_unpack_evt(bt_dev_t *dev);
+bt_dev_evt_e bt_hci_unpack_acl(bt_dev_t *dev, bt_callbacks_t *cb);
+bt_dev_evt_e bt_hci_unpack_sco(bt_dev_t *dev, bt_callbacks_t *cb);
+
+bt_dev_evt_e bt_hci_unpack_evt(bt_dev_t *dev, bt_callbacks_t *cb);
+bt_dev_evt_e bt_hci_unpack_inquiry_complete(bt_dev_t *dev, int len);
+bt_dev_evt_e bt_hci_unpack_inquiry_results(bt_dev_t *dev, int len);
+void bt_hci_unpack_inquiry_result(bt_dev_t *dev, bt_peer_t *peer);
+bt_dev_evt_e bt_hci_unpack_conn_request(bt_dev_t *dev, int len,
+                                        bt_callbacks_t *cb);
+bt_dev_evt_e bt_hci_unpack_conn_complete(bt_dev_t *dev, int len,
+                                         bt_callbacks_t *cb);
+bt_dev_evt_e bt_hci_unpack_disconn_complete(bt_dev_t *dev, int len,
+                                        bt_callbacks_t *cb);
+bt_dev_evt_e bt_hci_unpack_read_features(bt_dev_t *dev, int len);
+bt_dev_evt_e bt_hci_unpack_cmd_status(bt_dev_t *dev, int len);
 bt_dev_evt_e bt_hci_unpack_cmd_status(bt_dev_t *dev, int len);
 bt_dev_evt_e bt_hci_unpack_cmd_complete(bt_dev_t *dev, int len);
 bt_dev_evt_e bt_hci_unpack_cc_read_local_features(bt_dev_t *dev);
 bt_dev_evt_e bt_hci_unpack_cc_read_bd_addr(bt_dev_t *dev);
+
+int bt_hci_main(bt_dev_t *dev, bt_callbacks_t *cb);
 
 /** pack ogf and ocf into 16 bits HCI command opcode field */
 #define CMD_OPCODE_PACK(ogf, ocf) (((ocf) & 0x03ff) | (((ogf) & 0x3f) << 10))

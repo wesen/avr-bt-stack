@@ -1,17 +1,85 @@
 #include <string.h>
 #include "bt_stack.h"
 
+void bt_dev_init(bt_dev_t *dev) {
+   int i;
+
+   bt_serial_init(dev);
+
+   for (i=0; i<NUM_PEERS; i++)
+      dev->peers[i].state = PEER_STATE_EMPTY;
+
+   for (i=0; i<NUM_ACLS; i++)
+      dev->acls[i].state = ACL_STATE_EMPTY;
+
+   dev->state = BT_DEV_STATE_RESET;
+   dev->ncmds = 1;
+}
+
+bt_peer_t *bt_dev_get_free_peer(bt_dev_t *dev) { 
+   unsigned int i;
+
+   for (i=0; i<NUM_PEERS; i++) {
+      if (dev->peers[i].state == PEER_STATE_EMPTY) {
+         dev->peers[i].pkt_type = HCI_DM1;
+         dev->peers[i].clock_offset = 0;
+         memset(dev->peers[i].bd_addr, 0, 6);
+         memset(dev->peers[i].cod, 0, 3);
+         return dev->peers + i;
+      }
+   }
+
+   return NULL;
+}
+
+bt_peer_t *bt_dev_get_peer_by_bd_addr(bt_dev_t *dev, unsigned char *bd_addr){ 
+   unsigned int i;
+
+   for (i=0; i<NUM_PEERS; i++) {
+      if ((dev->peers[i].state != PEER_STATE_EMPTY) &&
+          !(memcmp(dev->peers[i].bd_addr, bd_addr, 6)))
+         return dev->peers + i;
+   }
+
+   return NULL;
+}
+
+bt_acl_t *bt_dev_get_free_acl(bt_dev_t *dev) {
+   unsigned int i;
+
+   for (i=0; i<NUM_ACLS; i++) {
+      if (dev->acls[i].state  == ACL_STATE_EMPTY)
+         return dev->acls + i;
+   }
+
+   return NULL;
+}
+
+bt_acl_t *bt_dev_get_acl_by_handle(bt_dev_t *dev, 
+                                   unsigned short handle) {
+   unsigned int i;
+
+   for (i=0; i<NUM_ACLS; i++) {
+      if ((dev->acls[i].state  != ACL_STATE_EMPTY) &&
+            (dev->acls[i].handle == handle))
+         return dev->acls + i;
+   }
+
+   return NULL;
+}
+
 int bt_dev_flush_hci(bt_dev_t *dev) {
+   dev->ncmds--;
    return bt_serial_send(dev, dev->buf, dev->ptr - dev->buf);
 }
 
-bt_dev_evt_e bt_dev_read_hci(bt_dev_t *dev) {
+bt_dev_evt_e bt_dev_read_hci(bt_dev_t *dev, bt_callbacks_t *cb) {
    dev->ptr = dev->buf;
 
    if (bt_serial_read(dev, dev->ptr, 1) != 1)
       return dev_evt_timeout;
 
-   return bt_hci_unpack_hci(dev);
+   return bt_hci_unpack_hci(dev, cb);
 }
 
 void bt_dev_pack_reset(bt_dev_t *dev) {
@@ -142,6 +210,14 @@ void bt_dev_pack_read_buffer_size(bt_dev_t *dev) {
 void bt_dev_pack_read_bd_addr(bt_dev_t *dev) {
    bt_hci_pack_cmd(dev, OGF_INFO_PARAM, OCF_READ_BD_ADDR, 0);
 }
+
+#ifdef BTERICSSON
+void bt_dev_pack_ericsson_set_baudrate(bt_dev_t *dev, 
+                                       unsigned char baudrate) {
+   bt_hci_pack_cmd(dev, OGF_VENDOR, OCF_ERICSSON_SET_BAUDRATE, 1);
+   UINT8_PACK(dev->ptr, baudrate);
+}
+#endif /* BTERICSSON */
 
 void bt_dev_pack_l2cap(bt_dev_t *dev, unsigned short handle, 
                        unsigned char *data, int len) {

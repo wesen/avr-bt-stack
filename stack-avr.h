@@ -13,4 +13,7 @@
 #define AVR_DEV_NAME    4
 #define AVR_END         0xf0
 
+#define BW_SENSOR_DATA  1
+#define BW_CONFIG_DATA  2
+
 #endif /* STACK_AVR_H__ */

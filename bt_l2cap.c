@@ -121,6 +121,8 @@ bt_l2cap_evt_e bt_l2cap_unpack_cmd(bt_dev_t *dev) {
          }
 
       case L2CAP_ECHO_REQ:
+         bt_l2cap_pack_cmd(dev, L2CAP_ECHO_RSP, id, 0);
+         bt_dev_flush_hci(dev);
          return l2cap_evt_echo_req;
 
       case L2CAP_ECHO_RSP:
@@ -140,6 +142,39 @@ bt_l2cap_evt_e bt_l2cap_unpack_cmd(bt_dev_t *dev) {
             return l2cap_evt_info_rsp;
          }
          
+      default:
+         return l2cap_evt_garbage;
+   }
+}
+
+bt_l2cap_evt_e bt_l2cap_unpack_conf_option(bt_dev_t *dev) {
+   unsigned char type, len;
+
+   type = UINT8_UNPACK(dev->ptr);
+   len  = UINT8_UNPACK(dev->ptr);
+
+   switch (type) {
+      case L2CAP_CONF_MTU:
+         if (len < 2) {
+            return l2cap_evt_garbage;
+         } else {
+            return l2cap_evt_conf_mtu;
+         }
+
+      case L2CAP_CONF_FLUSH:
+         if (len < 2) {
+            return l2cap_evt_garbage;
+         } else {
+            return l2cap_evt_conf_flush;
+         }
+
+      case L2CAP_CONF_QOS:
+         if (len < 22) {
+            return l2cap_evt_garbage;
+         } else {
+            return l2cap_evt_conf_qos;
+         }
+
       default:
          return l2cap_evt_garbage;
    }
